@@ -27,20 +27,31 @@ from blueprints.plugin import plugin_bp
 from blueprints.playlist import playlist_bp
 from jinja2 import ChoiceLoader, FileSystemLoader
 from plugins.plugin_registry import load_plugins
-
+import epdconfig
 
 logger = logging.getLogger(__name__)
 
 logger.info("Starting web server")
 app = Flask(__name__)
 template_dirs = [
-   os.path.join(os.path.dirname(__file__), "templates"),    # Default template folder
-   os.path.join(os.path.dirname(__file__), "plugins"),      # Plugin templates
+    os.path.join(os.path.dirname(__file__), "templates"),    # Default template folder
+    os.path.join(os.path.dirname(__file__), "plugins"),      # Plugin templates
 ]
 app.jinja_loader = ChoiceLoader([FileSystemLoader(directory) for directory in template_dirs])
 
 device_config = Config()
-display_manager = DisplayManager(device_config)
+
+try:
+    display_manager = DisplayManager(device_config)
+except KeyboardInterrupt:
+    print("InkyPi interrupted during DisplayManager initialization. Cleaning up...")
+    try:
+        display_manager.epd.sleep()
+        epdconfig.module_exit(cleanup=True)
+    except Exception as e:
+        print(f"Cleanup failed: {e}")
+    exit(0)
+
 refresh_task = RefreshTask(device_config, display_manager)
 
 load_plugins(device_config.get_plugins())
