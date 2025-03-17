@@ -3,7 +3,7 @@ import epd5in65f
 #from inky.auto import auto
 from utils.image_utils import resize_image, change_orientation
 from plugins.plugin_registry import get_plugin_instance
-
+import time
 
 class DisplayManager:
     def __init__(self, device_config):
@@ -14,6 +14,7 @@ class DisplayManager:
         
         self.epd = epd5in65f.EPD()
         self.epd.init()
+        
 
         # store display resolution in device config
         if not device_config.get_config("resolution"):
@@ -32,6 +33,8 @@ class DisplayManager:
         image = resize_image(image, self.device_config.get_resolution(), image_settings)
 
         # Display the image on the Inky display
-        self.inky_display.set_image(image)
+        #self.inky_display.set_image(image)
         #self.inky_display.show()
+        self.epd.Clear()
+        time.sleep(2)
         self.epd.display(self.epd.getbuffer(image))
